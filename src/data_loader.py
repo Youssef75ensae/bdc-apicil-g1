@@ -22,3 +22,13 @@ def load_data() -> pd.DataFrame:
         df = pd.read_excel(f)
 
     return df
+
+if __name__ == "__main__":
+    output_path = os.environ.get("DATA_LOCAL_PATH", "data/raw/apicil.csv")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+ 
+    print("Chargement des données depuis S3...")
+    df = load_data()
+ 
+    df.to_csv(output_path, index=False)
+    print(f"Données sauvegardées dans {output_path} ({len(df)} lignes)")
