@@ -1,0 +1,4 @@
+pandas
+openpyxl
+s3fs
+python-dotenv
