@@ -1,4 +1,6 @@
 pandas
 openpyxl
+xlrd
 s3fs
 python-dotenv
+requests
