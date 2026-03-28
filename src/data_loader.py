@@ -21,6 +21,17 @@ def load_data() -> pd.DataFrame:
     with fs.open(path, "rb") as f:
         df = pd.read_excel(f)
 
+    motifs_resiliation = [
+        "Résiliation infra-annuelle",
+        "Résiliation Loi Chatel",
+        "Résiliation"
+    ]
+    df["resilie"] = (
+        df["Contrat : Motif de fermeture du contrat"]
+        .isin(motifs_resiliation)
+        .astype(int)
+    )
+    
     return df
 
 if __name__ == "__main__":
