@@ -26,10 +26,10 @@ def load_data() -> pd.DataFrame:
         "Résiliation Loi Chatel",
         "Résiliation"
     ]
-    df["resilie"] = (
-        df["Contrat : Motif de fermeture du contrat"]
-        .isin(motifs_resiliation)
-        .astype(int)
+    df["est_resilie"] = (
+    df["Contrat : Motif de fermeture du contrat"]
+    .isin(motifs_resiliation)
+    .astype(int)
     )
     
     return df
