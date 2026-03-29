@@ -31,6 +31,8 @@ def load_data() -> pd.DataFrame:
     .isin(motifs_resiliation)
     .astype(int)
     )
+
+    df["id_client"] = range(1, len(df) + 1)
     
     return df
 
