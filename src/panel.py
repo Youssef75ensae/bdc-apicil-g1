@@ -103,7 +103,7 @@ def create_sliding_window_dataset(
         annee_ref = date_ref.year
         for col in cols_augmentation:
             annee_col = int(col.split(" ")[1])
-            df[col] = np.where(annee_ref < annee_col, np.nan, df[col])
+            contrats_actifs[col] = np.where(annee_ref < annee_col, np.nan, contrats_actifs[col])
 
         if len(contrats_actifs) == 0:
             continue
