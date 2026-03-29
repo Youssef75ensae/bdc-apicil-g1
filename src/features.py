@@ -73,12 +73,17 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # -------------------------------------------------------------------------
     # Variables sur les augmentations tarifaires annuelles
+    # Un NaN signifie que l'augmentation n'est pas encore connue à la date
+    # de référence (logique anti-leakage de panel.py) ou que le contrat
+    # n'existait pas cette année-là. On remplace par 0 avant de calculer
+    # les variables synthétiques.
     # -------------------------------------------------------------------------
     aug_cols = [
         "Augmentation 2018", "Augmentation 2019", "Augmentation 2020",
         "Augmentation 2021", "Augmentation 2022", "Augmentation 2023",
         "Augmentation 2024", "Augmentation 2025"
     ]
+    df[aug_cols] = df[aug_cols].fillna(0)
 
     # Augmentation cumulée : produit des (1 + taux) sur toutes les années connues.
     # Donne la hausse totale de la prime depuis 2018, en proportion.
@@ -132,6 +137,16 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
         df[f"annee_{a}"] = (df["annee_reference"] == a).astype(int)
 
     # -------------------------------------------------------------------------
+    # Zone critique d'ancienneté : vaut 1 si le contrat a entre 12 et 15 mois.
+    # Cette fenêtre correspond à la première période légale de résiliation
+    # (loi Chatel), souvent associée à un pic de churn.
+    # Note : anciennete_mois est déjà calculée dans panel.py, on la réutilise.
+    # -------------------------------------------------------------------------
+    df["zone_critique"] = (
+        (df["anciennete_mois"] >= 12) & (df["anciennete_mois"] <= 15)
+    ).astype(int)
+
+    # -------------------------------------------------------------------------
     # Encodage one-hot des variables catégorielles
     # -------------------------------------------------------------------------
 
@@ -146,6 +161,48 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=["Situation familiale"])
 
     # -------------------------------------------------------------------------
+    # Région : regroupement des départements par région administrative.
+    # Permet de capturer des effets géographiques sur la résiliation
+    # (ex : offre concurrentielle locale, démographie régionale).
+    # -------------------------------------------------------------------------
+    regions_to_depts = {
+        "Auvergne-Rhône-Alpes": ["1", "3", "7", "15", "26", "38", "42", "43", "63", "69", "73", "74"],
+        "Bourgogne-Franche-Comté": ["21", "25", "39", "58", "70", "71", "89", "90"],
+        "Bretagne": ["22", "29", "35", "56"],
+        "Centre-Val de Loire": ["18", "28", "36", "37", "41", "45"],
+        "Corse": ["2A", "2B"],
+        "Grand Est": ["8", "10", "51", "52", "54", "55", "57", "67", "68", "88"],
+        "Hauts-de-France": ["2", "59", "60", "62", "80"],
+        "Île-de-France": ["75", "77", "78", "91", "92", "93", "94", "95"],
+        "Normandie": ["14", "27", "50", "61", "76"],
+        "Nouvelle-Aquitaine": ["16", "17", "19", "23", "24", "33", "40", "47", "64", "79", "86", "87"],
+        "Occitanie": ["9", "11", "12", "30", "31", "32", "34", "46", "48", "65", "66", "81", "82"],
+        "Pays de la Loire": ["44", "49", "53", "72", "85"],
+        "Provence-Alpes-Côte d'Azur": ["4", "5", "6", "13", "83", "84"],
+        "Guadeloupe": ["971"],
+        "Martinique": ["972"],
+        "Guyane": ["973"],
+        "La Réunion": ["974"],
+        "Mayotte": ["976"],
+        "Inconnu": ["Inconnu"],
+        "Hors France": ["Hors France"],
+    }
+
+    # Dictionnaire inverse : code département → région
+    dept_to_region = {
+        dept: region
+        for region, depts in regions_to_depts.items()
+        for dept in depts
+    }
+
+    df["région"] = df["Département"].astype(str).map(dept_to_region)
+
+    # On encode uniquement la colonne région en dummies, sans dupliquer le reste du DataFrame
+    reg_dummies = pd.get_dummies(df["région"], prefix="reg").astype(int)
+    df = pd.concat([df, reg_dummies], axis=1)
+    df = df.drop(columns=["région"])
+
+    # -------------------------------------------------------------------------
     # Suppression des colonnes de dates brutes, devenues inutiles après
     # la construction des variables temporelles et d'ancienneté dans panel.py
     # -------------------------------------------------------------------------
@@ -154,10 +211,8 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     # Encodage binaire du sexe : 1 = Masculin, 0 = Féminin
     df["Sexe"] = (df["Sexe"] == "Masculin").astype(int)
 
-    # Zone critique (12-15 mois)
-    df['zone_critique'] = ((df['anciennete_mois'] >= 12) & (df['anciennete_mois'] <= 15)).astype(int)
-
     return df
+
 
 if __name__ == "__main__":
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
