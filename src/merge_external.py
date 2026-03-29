@@ -19,7 +19,7 @@ OUT_PATH   = os.environ.get("PANEL_EXT_LOCAL_PATH", "data/processed/panel_ext.cs
 EXTERNAL = {
     "indice_prix_conso_general": {
         "path": "data/external/transformed/indice_prix_conso_general.csv",
-        "value_col": "indice_prix_conso_general",
+        "value_col": "indice_prix_conso",
     },
     "indice_prix_conso_complementaires_sante": {
         "path": "data/external/transformed/indice_prix_conso_complementaires_sante.csv",
@@ -27,7 +27,7 @@ EXTERNAL = {
     },
     "indice_confiance_des_menages": {
         "path": "data/external/transformed/indice_confiance_des_menages.csv",
-        "value_col": "indice_confiance_des_menages",
+        "value_col": "indice_confiance_menages",
     },
     "taux_chomage_departement": {
         "path": "data/external/transformed/taux_chomage_departement.csv",
