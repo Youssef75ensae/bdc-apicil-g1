@@ -30,7 +30,7 @@ from sklearn.metrics import (
 
 TARGET = "resilie"
 SPLIT_YEAR = 2025
-MODELS_DIR = "models"
+MODELS_DIR = "models/auc_roc"
 
 FEATURES = [
     'Sexe',
