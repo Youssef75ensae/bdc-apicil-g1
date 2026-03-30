@@ -211,14 +211,14 @@ if __name__ == "__main__":
     )
 
     transform_indice_csv(
-        raw_filename="indice_prix_conso.csv",
-        output_filename="indice_prix_conso_general.csv",
+        raw_filename="indice_prix_conso_general.csv",
+        output_filename="indice_prix_conso.csv",
         description="Indice des prix à la consommation — ensemble hors tabac (idBank 011814056)",
     )
 
     transform_indice_xlsx(
         raw_filename="indice_confiance_des_menages.xlsx",
-        output_filename="indice_confiance_des_menages.csv",
+        output_filename="indice_confiance_menages.csv",
         description="Indicateur synthétique de confiance des ménages (idBank 8730744)",
         sheet="C.A.M.",
         skiprows=6,
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
     transform_chomage_dept(
         raw_filename="taux_de_chomage_departement.xls",
-        output_filename="taux_chomage_departement.csv",
+        output_filename="taux_chomage.csv",
         description="Taux de chômage localisé par département (T1-2015 à T4-2025)",
     )
 
