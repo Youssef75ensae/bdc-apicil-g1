@@ -102,6 +102,8 @@ FEATURES = [
     'sit_fam_Séparé(e)',
     'sit_fam_Veuf(ve)',
     'zone_critique',
+    'annee_2016', 'annee_2017', 'annee_2018', 'annee_2019', 'annee_2020',
+    'annee_2021', 'annee_2022', 'annee_2023', 'annee_2024',
     'reg_Auvergne-Rhône-Alpes',
     'reg_Bourgogne-Franche-Comté',
     'reg_Bretagne',
