@@ -211,6 +211,19 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     # Encodage binaire du sexe : 1 = Masculin, 0 = Féminin
     df["Sexe"] = (df["Sexe"] == "Masculin").astype(int)
 
+    # -------------------------------------------------------------------------
+    # Variables dérivées du taux de chômage départemental
+    # delta_chomage : dynamique locale (variation trimestrielle)
+    # ecart_chomage_national : pression économique locale vs moyenne nationale
+    # -------------------------------------------------------------------------
+
+    # Variation trimestrielle du taux de chômage dans le département
+    df["delta_chomage"] = df.groupby("Département")["taux_chomage"].diff()
+
+    # Écart au taux national (le département est-il au-dessus ou en-dessous de la moyenne ?)
+    df["ecart_chomage_national"] = df["taux_chomage"] - df.groupby("date_reference")["taux_chomage"].transform("mean")
+
+
     return df
 
 
