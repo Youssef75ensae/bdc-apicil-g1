@@ -67,46 +67,53 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     # -------------------------------------------------------------------------
     df["Date dernière récla"] = pd.to_datetime(df["Date dernière récla"], errors="coerce")
     df["date_reference"] = pd.to_datetime(df["date_reference"], errors="coerce")
-    df["delai_depuis_derniere_recla"] = (
-        df["date_reference"] - df["Date dernière récla"]
-    ).dt.days
+    df["delai_depuis_derniere_recla"] = (df["date_reference"] - df["Date dernière récla"]).dt.days
 
-    # -------------------------------------------------------------------------
+    # Correction anti-leakage : une réclamation postérieure à la date de référence
+    # est une information du futur — on la met à NaN
+    mask = df["Date dernière récla"] > df["date_reference"]
+    df.loc[mask, "delai_depuis_derniere_recla"] = np.nan
+
+     # -------------------------------------------------------------------------
     # Variables sur les augmentations tarifaires annuelles
     # Un NaN signifie que l'augmentation n'est pas encore connue à la date
     # de référence (logique anti-leakage de panel.py) ou que le contrat
-    # n'existait pas cette année-là. On remplace par 0 avant de calculer
-    # les variables synthétiques.
+    # n'existait pas cette année-là.
     # -------------------------------------------------------------------------
     aug_cols = [
         "Augmentation 2018", "Augmentation 2019", "Augmentation 2020",
         "Augmentation 2021", "Augmentation 2022", "Augmentation 2023",
         "Augmentation 2024", "Augmentation 2025"
     ]
-    df[aug_cols] = df[aug_cols].fillna(0)
-
-    # Augmentation cumulée : produit des (1 + taux) sur toutes les années connues.
-    # Donne la hausse totale de la prime depuis 2018, en proportion.
-    df["aug_cumulee"] = (1 + df[aug_cols] / 100).prod(axis=1) - 1
-
-    # Augmentation moyenne : taux d'augmentation annuel moyen sur les années connues.
-    df["aug_moyenne"] = df[aug_cols].mean(axis=1)
-
+ 
     # Dernière et avant-dernière augmentation connue.
     # ffill(axis=1) propage la dernière valeur non-NaN vers la droite,
     # ce qui permet de récupérer la valeur la plus récente disponible
     # quelle que soit la date de référence de l'observation.
+    # NaN si aucune augmentation n'est connue pour ce contrat.
     df["aug_derniere"] = df[aug_cols].ffill(axis=1).iloc[:, -1]
     df["aug_avant_derniere"] = df[aug_cols].ffill(axis=1).iloc[:, -2]
-
+ 
     # Accélération : différence entre la dernière et l'avant-dernière augmentation.
     # Une valeur positive signale une hausse qui s'accélère, potentiellement
     # un facteur déclencheur de résiliation.
     df["aug_acceleration"] = df["aug_derniere"] - df["aug_avant_derniere"]
-
+ 
     # Volatilité des augmentations : écart-type sur les années connues.
     # Mesure l'instabilité tarifaire perçue par le client.
     df["aug_volatilite"] = df[aug_cols].std(axis=1)
+ 
+    # On remplace les NaN par 0 pour les variables synthétiques qui nécessitent
+    # toutes les colonnes : une année sans augmentation connue est traitée comme
+    # une augmentation nulle dans le calcul du cumul et de la moyenne.
+    df[aug_cols] = df[aug_cols].fillna(0)
+ 
+    # Augmentation cumulée : produit des (1 + taux) sur toutes les années connues.
+    # Donne la hausse totale de la prime depuis 2018, en proportion.
+    df["aug_cumulee"] = (1 + df[aug_cols] / 100).prod(axis=1) - 1
+ 
+    # Augmentation moyenne : taux d'augmentation annuel moyen sur les années connues.
+    df["aug_moyenne"] = df[aug_cols].mean(axis=1)
 
     # -------------------------------------------------------------------------
     # Score de satisfaction globale : moyenne des quatre indicateurs de satisfaction
