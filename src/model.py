@@ -70,6 +70,8 @@ FEATURES = [
     'indice_prix_conso_complementaires_sante',
     'indice_confiance_menages',
     'taux_chomage',
+    "delta_chomage",
+    "ecart_chomage_national"
     'age_Q1',
     'age_Q2',
     'age_Q3',
