@@ -212,6 +212,7 @@ def evaluate(
     x_test: pd.DataFrame,
     y_test: pd.Series,
     plot_roc: bool = True,
+    seuil=0.5
 ) -> dict:
     """
     Évalue un modèle entraîné sur le jeu de test.
@@ -232,7 +233,7 @@ def evaluate(
     dict : dictionnaire des métriques
     """
     y_proba = model.predict_proba(x_test)[:, 1]
-    y_pred  = (y_proba >= 0.5).astype(int)
+    y_pred  = (y_proba >= seuil).astype(int)
 
     auc       = roc_auc_score(y_test, y_proba)
     auc_pr    = average_precision_score(y_test, y_proba)
